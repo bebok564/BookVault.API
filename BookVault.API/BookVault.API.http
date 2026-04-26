@@ -1,0 +1,107 @@
+@BookVault.API_HostAddress = http://localhost:5161
+
+POST {{BookVault.API_HostAddress}}/api/categories
+Content-Type: application/json
+
+{
+    "name": "Fiction"
+}
+###
+
+POST {{BookVault.API_HostAddress}}/api/authors
+Content-Type: application/json
+
+{
+    "firstName": "F. Scott",
+    "lastName": "Fitzgerald",
+    "bio": "American novelist",
+    "birthDate": "1896-09-24"
+}
+
+###
+
+POST {{BookVault.API_HostAddress}}/api/books
+Content-Type: application/json
+{
+   "title": "The Great Gatsby",
+    "isbn": "9780743273565",
+    "description": "A novel about the American Dream",
+    "pageCount": 180,
+    "publishedDate": "1925-04-10",
+    "authorId": 1,
+    "categoryIds": [1]
+}
+###
+
+//GET /api/books — czy zwraca listê z paginacj¹
+GET {{BookVault.API_HostAddress}}/api/books
+Content-Type: application/json
+{
+    "id": 1,
+    "Title" = "The Great Gatsby",
+    "Isbn" = "9780743273565",
+    "Description" = "A novel about the American Dream",
+    "PageCount" = 180,
+    "PublishedDate" = "1925-04-10",
+    "AuthorId" = 1,
+    "CategoryIds" = [1]
+}
+
+###
+
+//GET /api/books/1 — czy zwraca szczegó³y z autorem i kategoriami
+GET {{BookVault.API_HostAddress}}/api/books/2
+###
+
+//PUT /api/books/1 — czy aktualizuje
+PUT {{BookVault.API_HostAddress}}/api/books/2
+Content-Type: application/json
+{
+    "title": "The Great Gatsby",
+    "isbn": "9780743273565",
+    "description": "A novel about the American Dream",
+    "pageCount": 180,
+    "publishedDate": "1925-04-10",
+    "authorId": 1,
+    "categoryIds": [1]
+}
+###
+//POST /api/books/1/reviews — czy dodaje recenzjê i przelicza œredni¹
+POST {{BookVault.API_HostAddress}}/api/books/1/reviews 
+Content-Type: application/json
+{
+    "title": "The Great Gatsby",
+    "isbn": "9780743273565",
+    "description": "A novel about the American Dream",
+    "pageCount": 180,
+    "publishedDate": "1925-04-10",
+    "authorId": 1,
+    "categoryIds": [1]
+
+      "Id" : "1",
+      "ReviewerName" : "Bebok",
+      "Comment" : "I like that",
+      "Rating" : 5,
+      "CreatedAt" : "2025-04-10",
+}
+###
+//GET /api/books/1/reviews — czy zwraca 
+GET {{BookVault.API_HostAddress}}/api/books/2/reviews 
+Content-Type: application/json
+{
+      "Id" : "1",
+      "ReviewerName" : "Bebok",
+      "Comment" : "I like that",
+      "Rating" : 5,
+      "CreatedAt" : "2025-04-10", 
+}
+###
+//DELETE /api/books/1 — czy usuwa
+DELETE {{BookVault.API_HostAddress}}/api/books/1
+Content-Type: application/json
+{
+}
+###
+GET {{BookVault.API_HostAddress}}/api/categories
+
+###
