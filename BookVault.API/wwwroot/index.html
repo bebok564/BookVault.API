@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BookVault — Library Manager</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #08090c;
+  --bg2: #0e1015;
+  --bg3: #14161d;
+  --surface: #1a1d27;
+  --surface2: #21242f;
+  --border: #282c3a;
+  --border-h: #3a3f52;
+  --text: #c4c8d4;
+  --text-dim: #6a6f82;
+  --text-bright: #eaedf5;
+  --accent: #c9a87c;
+  --accent2: #dfc49e;
+  --accent-glow: rgba(201,168,124,0.08);
+  --red: #e25c5c;
+  --red-glow: rgba(226,92,92,0.08);
+  --green: #5cb878;
+  --green-glow: rgba(92,184,120,0.08);
+  --blue: #5c8ee2;
+  --blue-glow: rgba(92,142,226,0.08);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:'Manrope',sans-serif;min-height:100vh;line-height:1.6}
+::selection{background:var(--accent);color:var(--bg)}
+
+/* ── Layout ── */
+.app{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+@media(max-width:900px){.app{grid-template-columns:1fr}.sidebar{display:none}}
+
+/* ── Sidebar ── */
+.sidebar{background:var(--bg2);border-right:1px solid var(--border);padding:2rem 0;position:sticky;top:0;height:100vh;overflow-y:auto}
+.logo{padding:0 1.5rem;margin-bottom:2.5rem}
+.logo h1{font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:700;color:var(--text-bright);letter-spacing:-0.5px}
+.logo h1 span{color:var(--accent)}
+.logo p{font-size:.7rem;color:var(--text-dim);letter-spacing:2px;text-transform:uppercase;margin-top:.15rem}
+.nav-section{margin-bottom:1.5rem}
+.nav-label{font-size:.65rem;letter-spacing:2.5px;text-transform:uppercase;color:var(--text-dim);padding:0 1.5rem;margin-bottom:.5rem}
+.nav-item{display:flex;align-items:center;gap:.65rem;padding:.6rem 1.5rem;cursor:pointer;transition:all .2s;font-size:.88rem;color:var(--text-dim);border-left:2px solid transparent}
+.nav-item:hover{color:var(--text);background:rgba(255,255,255,.02)}
+.nav-item.active{color:var(--accent);border-left-color:var(--accent);background:var(--accent-glow)}
+.nav-icon{font-size:1rem;width:20px;text-align:center}
+.nav-count{margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:.7rem;background:var(--surface);padding:.1rem .45rem;border-radius:3px;color:var(--text-dim)}
+
+/* ── Main ── */
+.main{padding:2rem 2.5rem;max-width:1100px}
+@media(max-width:900px){.main{padding:1.25rem 1rem}}
+
+/* ── Header ── */
+.page-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem;flex-wrap:wrap;gap:1rem}
+.page-title{font-family:'Cormorant Garamond',serif;font-size:2.2rem;font-weight:700;color:var(--text-bright)}
+.page-title span{color:var(--accent)}
+
+/* ── Buttons ── */
+.btn{font-family:'Manrope',sans-serif;padding:.55rem 1.2rem;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;font-size:.82rem;font-weight:600;transition:all .2s;display:inline-flex;align-items:center;gap:.4rem}
+.btn:hover{border-color:var(--border-h);background:var(--surface2)}
+.btn-accent{background:var(--accent);color:var(--bg);border-color:var(--accent)}
+.btn-accent:hover{background:var(--accent2)}
+.btn-danger{color:var(--red);border-color:rgba(226,92,92,.25)}
+.btn-danger:hover{background:var(--red-glow);border-color:var(--red)}
+.btn-sm{padding:.35rem .75rem;font-size:.75rem}
+
+/* ── Search ── */
+.search-bar{display:flex;gap:.75rem;margin-bottom:1.5rem;flex-wrap:wrap}
+.search-input{flex:1;min-width:200px;padding:.6rem 1rem;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'Manrope',sans-serif;font-size:.85rem;outline:none;transition:border-color .2s}
+.search-input:focus{border-color:var(--accent)}
+.search-input::placeholder{color:var(--text-dim)}
+select.search-input{cursor:pointer;max-width:200px}
+
+/* ── Table ── */
+.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:1.5rem}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;padding:.75rem 1rem;font-size:.7rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-dim);border-bottom:1px solid var(--border);background:var(--bg3);font-weight:600}
+td{padding:.75rem 1rem;border-bottom:1px solid rgba(40,44,58,.5);font-size:.88rem;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.015)}
+.rating{font-family:'IBM Plex Mono',monospace;color:var(--accent);font-weight:600}
+.cat-tag{display:inline-block;font-size:.7rem;padding:.15rem .5rem;border-radius:3px;background:var(--accent-glow);color:var(--accent);border:1px solid rgba(201,168,124,.2);margin-right:.25rem;margin-bottom:.2rem}
+.actions{display:flex;gap:.35rem}
+.empty-state{text-align:center;padding:3rem;color:var(--text-dim);font-size:.9rem}
+
+/* ── Pagination ── */
+.pagination{display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem;font-size:.82rem;color:var(--text-dim)}
+.page-info{font-family:'IBM Plex Mono',monospace;font-size:.78rem}
+.page-btns{display:flex;gap:.35rem}
+
+/* ── Modal ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;display:none;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(4px)}
+.modal-overlay.open{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:12px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;animation:modalIn .25s ease}
+@keyframes modalIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.modal-header{display:flex;justify-content:space-between;align-items:center;padding:1.25rem 1.5rem;border-bottom:1px solid var(--border)}
+.modal-header h2{font-family:'Cormorant Garamond',serif;font-size:1.4rem;color:var(--text-bright)}
+.modal-close{background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:1.2rem;padding:.25rem;transition:color .2s}
+.modal-close:hover{color:var(--text)}
+.modal-body{padding:1.5rem}
+.modal-footer{padding:1rem 1.5rem;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:.5rem}
+
+/* ── Form ── */
+.form-group{margin-bottom:1rem}
+.form-label{display:block;font-size:.78rem;font-weight:600;color:var(--text-dim);margin-bottom:.35rem;letter-spacing:.5px;text-transform:uppercase}
+.form-input{width:100%;padding:.55rem .85rem;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'Manrope',sans-serif;font-size:.85rem;outline:none;transition:border-color .2s}
+.form-input:focus{border-color:var(--accent)}
+textarea.form-input{resize:vertical;min-height:80px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+
+/* ── Detail panel ── */
+.detail-panel{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1.75rem;margin-bottom:1.5rem;display:none}
+.detail-panel.open{display:block;animation:modalIn .3s ease}
+.detail-title{font-family:'Cormorant Garamond',serif;font-size:1.8rem;color:var(--text-bright);margin-bottom:.25rem}
+.detail-author{color:var(--accent);font-size:.95rem;margin-bottom:1rem}
+.detail-meta{display:flex;gap:1.5rem;flex-wrap:wrap;margin-bottom:1rem;font-size:.85rem;color:var(--text-dim)}
+.detail-meta span{display:flex;align-items:center;gap:.3rem}
+.detail-desc{font-size:.9rem;line-height:1.8;margin-bottom:1.5rem;color:var(--text)}
+.detail-section-title{font-size:.72rem;letter-spacing:2px;text-transform:uppercase;color:var(--text-dim);margin-bottom:.75rem;padding-bottom:.35rem;border-bottom:1px solid var(--border)}
+
+/* ── Reviews ── */
+.review-card{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:1rem 1.25rem;margin-bottom:.6rem}
+.review-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:.35rem}
+.review-name{font-weight:600;color:var(--text-bright);font-size:.88rem}
+.review-date{font-size:.75rem;color:var(--text-dim);font-family:'IBM Plex Mono',monospace}
+.review-stars{color:var(--accent);font-size:.9rem;margin-bottom:.35rem}
+.review-comment{font-size:.85rem;color:var(--text)}
+
+/* ── Toast ── */
+.toast{position:fixed;bottom:2rem;right:2rem;padding:.75rem 1.25rem;border-radius:8px;font-size:.85rem;font-weight:500;z-index:200;animation:toastIn .3s ease;display:none}
+.toast.show{display:block}
+.toast.success{background:var(--green);color:#fff}
+.toast.error{background:var(--red);color:#fff}
+@keyframes toastIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── Loading ── */
+.loading{text-align:center;padding:2rem;color:var(--text-dim)}
+.spinner{display:inline-block;width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite;margin-right:.5rem;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="logo">
+      <h1>Book<span>Vault</span></h1>
+      <p>Library Manager</p>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Zarządzanie</div>
+      <div class="nav-item active" onclick="navigate('books')">
+        <span class="nav-icon">📚</span>Książki<span class="nav-count" id="booksCount">0</span>
+      </div>
+      <div class="nav-item" onclick="navigate('authors')">
+        <span class="nav-icon">✍️</span>Autorzy<span class="nav-count" id="authorsCount">0</span>
+      </div>
+      <div class="nav-item" onclick="navigate('categories')">
+        <span class="nav-icon">🏷️</span>Kategorie<span class="nav-count" id="categoriesCount">0</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <main class="main">
+    <!-- BOOKS PAGE -->
+    <div id="page-books">
+      <div class="page-header">
+        <h1 class="page-title">Książki</h1>
+        <button class="btn btn-accent" onclick="openBookModal()">+ Dodaj książkę</button>
+      </div>
+      <div class="search-bar">
+        <input type="text" class="search-input" id="bookSearch" placeholder="Szukaj po tytule lub autorze..." oninput="searchBooks()">
+        <select class="search-input" id="categoryFilter" onchange="searchBooks()">
+          <option value="">Wszystkie kategorie</option>
+        </select>
+        <select class="search-input" id="sortBy" onchange="searchBooks()">
+          <option value="title">Sortuj: Tytuł</option>
+          <option value="rating">Sortuj: Ocena</option>
+          <option value="date">Sortuj: Data</option>
+          <option value="author">Sortuj: Autor</option>
+        </select>
+      </div>
+
+      <!-- Book detail panel -->
+      <div class="detail-panel" id="bookDetail"></div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Tytuł</th>
+              <th>Autor</th>
+              <th>Kategorie</th>
+              <th>Ocena</th>
+              <th>Strony</th>
+              <th>Akcje</th>
+            </tr>
+          </thead>
+          <tbody id="booksTable"></tbody>
+        </table>
+      </div>
+      <div class="pagination">
+        <span class="page-info" id="pageInfo"></span>
+        <div class="page-btns">
+          <button class="btn btn-sm" id="prevBtn" onclick="changePage(-1)">← Poprzednia</button>
+          <button class="btn btn-sm" id="nextBtn" onclick="changePage(1)">Następna →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- AUTHORS PAGE -->
+    <div id="page-authors" style="display:none">
+      <div class="page-header">
+        <h1 class="page-title">Autorzy</h1>
+        <button class="btn btn-accent" onclick="openAuthorModal()">+ Dodaj autora</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Imię</th><th>Nazwisko</th><th>Bio</th><th>Akcje</th></tr></thead>
+          <tbody id="authorsTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- CATEGORIES PAGE -->
+    <div id="page-categories" style="display:none">
+      <div class="page-header">
+        <h1 class="page-title">Kategorie</h1>
+        <button class="btn btn-accent" onclick="openCategoryModal()">+ Dodaj kategorię</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Nazwa</th><th>Akcje</th></tr></thead>
+          <tbody id="categoriesTable"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Book Modal -->
+<div class="modal-overlay" id="bookModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="bookModalTitle">Dodaj książkę</h2>
+      <button class="modal-close" onclick="closeModal('bookModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="bookId">
+      <div class="form-group">
+        <label class="form-label">Tytuł</label>
+        <input type="text" class="form-input" id="bookTitle" placeholder="np. The Last Wish">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">ISBN</label>
+          <input type="text" class="form-input" id="bookIsbn" placeholder="9780316029186">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Liczba stron</label>
+          <input type="number" class="form-input" id="bookPages" placeholder="288">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Opis</label>
+        <textarea class="form-input" id="bookDesc" placeholder="Krótki opis książki..."></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Data wydania</label>
+          <input type="date" class="form-input" id="bookDate">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Autor</label>
+          <select class="form-input" id="bookAuthor"></select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Kategorie</label>
+        <div id="bookCategoriesCheckboxes" style="display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.25rem"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('bookModal')">Anuluj</button>
+      <button class="btn btn-accent" onclick="saveBook()">Zapisz</button>
+    </div>
+  </div>
+</div>
+
+<!-- Author Modal -->
+<div class="modal-overlay" id="authorModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="authorModalTitle">Dodaj autora</h2>
+      <button class="modal-close" onclick="closeModal('authorModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="authorId">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Imię</label>
+          <input type="text" class="form-input" id="authorFirst" placeholder="Andrzej">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Nazwisko</label>
+          <input type="text" class="form-input" id="authorLast" placeholder="Sapkowski">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Bio</label>
+        <textarea class="form-input" id="authorBio" placeholder="Krótka biografia..."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Data urodzenia</label>
+        <input type="date" class="form-input" id="authorBirth">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('authorModal')">Anuluj</button>
+      <button class="btn btn-accent" onclick="saveAuthor()">Zapisz</button>
+    </div>
+  </div>
+</div>
+
+<!-- Category Modal -->
+<div class="modal-overlay" id="categoryModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Dodaj kategorię</h2>
+      <button class="modal-close" onclick="closeModal('categoryModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Nazwa kategorii</label>
+        <input type="text" class="form-input" id="categoryName" placeholder="np. Thriller">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('categoryModal')">Anuluj</button>
+      <button class="btn btn-accent" onclick="saveCategory()">Zapisz</button>
+    </div>
+  </div>
+</div>
+
+<!-- Review Modal -->
+<div class="modal-overlay" id="reviewModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Dodaj recenzję</h2>
+      <button class="modal-close" onclick="closeModal('reviewModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="reviewBookId">
+      <div class="form-group">
+        <label class="form-label">Twoje imię / nick</label>
+        <input type="text" class="form-input" id="reviewName" placeholder="BookLover42">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Ocena (1-5)</label>
+        <div id="starPicker" style="font-size:1.5rem;cursor:pointer;display:flex;gap:.15rem">
+          <span onclick="pickRating(1)">☆</span>
+          <span onclick="pickRating(2)">☆</span>
+          <span onclick="pickRating(3)">☆</span>
+          <span onclick="pickRating(4)">☆</span>
+          <span onclick="pickRating(5)">☆</span>
+        </div>
+        <input type="hidden" id="reviewRating" value="0">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Komentarz</label>
+        <textarea class="form-input" id="reviewComment" placeholder="Co myślisz o tej książce?"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('reviewModal')">Anuluj</button>
+      <button class="btn btn-accent" onclick="saveReview()">Dodaj recenzję</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+const API = 'http://localhost:5161/api';
+let currentPage = 1;
+const pageSize = 8;
+let allCategories = [];
+let allAuthors = [];
+
+// ══════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════
+function navigate(page) {
+  document.querySelectorAll('[id^="page-"]').forEach(p => p.style.display = 'none');
+  document.getElementById(`page-${page}`).style.display = 'block';
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  document.getElementById('bookDetail').classList.remove('open');
+  if (page === 'books') loadBooks();
+  if (page === 'authors') loadAuthors();
+  if (page === 'categories') loadCategories();
+}
+
+// ══════════════════════════════════════
+// API HELPERS
+// ══════════════════════════════════════
+async function api(path, options = {}) {
+  try {
+    const res = await fetch(`${API}${path}`, {
+      headers: { 'Content-Type': 'application/json' },
+      ...options
+    });
+    if (res.status === 204) return null;
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || err.title || `Error ${res.status}`);
+    }
+    return await res.json();
+  } catch (e) {
+    if (e.message.includes('Failed to fetch')) {
+      showToast('Nie można połączyć z API — upewnij się że serwer działa', 'error');
+    } else {
+      showToast(e.message, 'error');
+    }
+    throw e;
+  }
+}
+
+// ══════════════════════════════════════
+// BOOKS
+// ══════════════════════════════════════
+async function loadBooks() {
+  const search = document.getElementById('bookSearch').value;
+  const catId = document.getElementById('categoryFilter').value;
+  const sort = document.getElementById('sortBy').value;
+  let query = `?page=${currentPage}&pageSize=${pageSize}&sortBy=${sort}`;
+  if (search) query += `&search=${encodeURIComponent(search)}`;
+  if (catId) query += `&categoryId=${catId}`;
+
+  try {
+    const data = await api(`/books${query}`);
+    const tbody = document.getElementById('booksTable');
+    document.getElementById('booksCount').textContent = data.totalCount;
+
+    if (!data.items.length) {
+      tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state">Brak książek do wyświetlenia</div></td></tr>';
+    } else {
+      tbody.innerHTML = data.items.map(b => `
+        <tr>
+          <td><strong style="color:var(--text-bright);cursor:pointer" onclick="showBookDetail(${b.id})">${b.title}</strong></td>
+          <td>${b.authorName}</td>
+          <td>${b.categories.map(c => `<span class="cat-tag">${c}</span>`).join('')}</td>
+          <td><span class="rating">${b.averageRating > 0 ? '★ ' + b.averageRating.toFixed(1) : '—'}</span></td>
+          <td>${b.pageCount}</td>
+          <td class="actions">
+            <button class="btn btn-sm" onclick="editBook(${b.id})">✏️</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteBook(${b.id}, '${b.title.replace(/'/g, "\\'")}')">🗑️</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    document.getElementById('pageInfo').textContent = `Strona ${data.page} z ${data.totalPages || 1} (${data.totalCount} książek)`;
+    document.getElementById('prevBtn').disabled = !data.hasPrevious;
+    document.getElementById('nextBtn').disabled = !data.hasNext;
+  } catch (e) {}
+}
+
+function searchBooks() {
+  currentPage = 1;
+  loadBooks();
+}
+
+function changePage(dir) {
+  currentPage += dir;
+  loadBooks();
+}
+
+async function showBookDetail(id) {
+  try {
+    const book = await api(`/books/${id}`);
+    const panel = document.getElementById('bookDetail');
+    panel.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div>
+          <div class="detail-title">${book.title}</div>
+          <div class="detail-author">by ${book.author.firstName} ${book.author.lastName}</div>
+        </div>
+        <button class="btn btn-sm" onclick="document.getElementById('bookDetail').classList.remove('open')">✕ Zamknij</button>
+      </div>
+      <div class="detail-meta">
+        <span>📄 ${book.pageCount} stron</span>
+        <span>📅 ${book.publishedDate}</span>
+        <span>📖 ${book.isbn}</span>
+        <span class="rating">★ ${book.averageRating > 0 ? book.averageRating.toFixed(1) : 'Brak ocen'}</span>
+      </div>
+      <div class="detail-meta">${book.categories.map(c => `<span class="cat-tag">${c}</span>`).join('')}</div>
+      ${book.description ? `<div class="detail-desc">${book.description}</div>` : ''}
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
+        <div class="detail-section-title" style="margin:0;border:none;padding:0">Recenzje (${book.reviews.length})</div>
+        <button class="btn btn-sm btn-accent" onclick="openReviewModal(${book.id})">+ Dodaj recenzję</button>
+      </div>
+      ${book.reviews.length ? book.reviews.map(r => `
+        <div class="review-card">
+          <div class="review-top">
+            <span class="review-name">${r.reviewerName}</span>
+            <span class="review-date">${new Date(r.createdAt).toLocaleDateString('pl-PL')}</span>
+          </div>
+          <div class="review-stars">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</div>
+          ${r.comment ? `<div class="review-comment">${r.comment}</div>` : ''}
+        </div>
+      `).join('') : '<div class="empty-state">Brak recenzji — bądź pierwszy!</div>'}
+    `;
+    panel.classList.add('open');
+    panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } catch (e) {}
+}
+
+function openBookModal(book = null) {
+  document.getElementById('bookModalTitle').textContent = book ? 'Edytuj książkę' : 'Dodaj książkę';
+  document.getElementById('bookId').value = book ? book.id : '';
+  document.getElementById('bookTitle').value = book ? book.title : '';
+  document.getElementById('bookIsbn').value = book ? book.isbn : '';
+  document.getElementById('bookPages').value = book ? book.pageCount : '';
+  document.getElementById('bookDesc').value = book ? (book.description || '') : '';
+  document.getElementById('bookDate').value = book ? book.publishedDate : '';
+
+  // Populate authors dropdown
+  const authorSel = document.getElementById('bookAuthor');
+  authorSel.innerHTML = allAuthors.map(a => `<option value="${a.id}" ${book && book.authorId === a.id ? 'selected' : ''}>${a.firstName} ${a.lastName}</option>`).join('');
+
+  // Populate category checkboxes
+  const catDiv = document.getElementById('bookCategoriesCheckboxes');
+  const selectedCats = book ? (book.categoryIds || []) : [];
+  catDiv.innerHTML = allCategories.map(c => `
+    <label style="display:flex;align-items:center;gap:.3rem;font-size:.82rem;cursor:pointer;padding:.3rem .6rem;background:var(--surface);border:1px solid var(--border);border-radius:4px">
+      <input type="checkbox" value="${c.id}" ${selectedCats.includes(c.id) ? 'checked' : ''}> ${c.name}
+    </label>
+  `).join('');
+
+  openModal('bookModal');
+}
+
+async function editBook(id) {
+  try {
+    const book = await api(`/books/${id}`);
+    // Map to editable format
+    const catIds = [];
+    for (const catName of book.categories) {
+      const found = allCategories.find(c => c.name === catName);
+      if (found) catIds.push(found.id);
+    }
+    openBookModal({
+      id: book.id,
+      title: book.title,
+      isbn: book.isbn,
+      pageCount: book.pageCount,
+      description: book.description,
+      publishedDate: book.publishedDate,
+      authorId: book.author.id,
+      categoryIds: catIds
+    });
+  } catch (e) {}
+}
+
+async function saveBook() {
+  const id = document.getElementById('bookId').value;
+  const catCheckboxes = document.querySelectorAll('#bookCategoriesCheckboxes input:checked');
+  const body = {
+    title: document.getElementById('bookTitle').value,
+    isbn: document.getElementById('bookIsbn').value,
+    description: document.getElementById('bookDesc').value || null,
+    pageCount: parseInt(document.getElementById('bookPages').value) || 0,
+    publishedDate: document.getElementById('bookDate').value,
+    authorId: parseInt(document.getElementById('bookAuthor').value),
+    categoryIds: Array.from(catCheckboxes).map(cb => parseInt(cb.value))
+  };
+
+  try {
+    if (id) {
+      await api(`/books/${id}`, { method: 'PUT', body: JSON.stringify(body) });
+      showToast('Książka zaktualizowana');
+    } else {
+      await api('/books', { method: 'POST', body: JSON.stringify(body) });
+      showToast('Książka dodana');
+    }
+    closeModal('bookModal');
+    loadBooks();
+  } catch (e) {}
+}
+
+async function deleteBook(id, title) {
+  if (!confirm(`Czy na pewno chcesz usunąć "${title}"?`)) return;
+  try {
+    await api(`/books/${id}`, { method: 'DELETE' });
+    showToast('Książka usunięta');
+    document.getElementById('bookDetail').classList.remove('open');
+    loadBooks();
+  } catch (e) {}
+}
+
+// ══════════════════════════════════════
+// AUTHORS
+// ══════════════════════════════════════
+async function loadAuthors() {
+  try {
+    const data = await api('/authors');
+    allAuthors = data;
+    document.getElementById('authorsCount').textContent = data.length;
+    const tbody = document.getElementById('authorsTable');
+    if (!data.length) {
+      tbody.innerHTML = '<tr><td colspan="4"><div class="empty-state">Brak autorów</div></td></tr>';
+    } else {
+      tbody.innerHTML = data.map(a => `
+        <tr>
+          <td><strong style="color:var(--text-bright)">${a.firstName}</strong></td>
+          <td>${a.lastName}</td>
+          <td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${a.bio || '—'}</td>
+          <td class="actions">
+            <button class="btn btn-sm" onclick="editAuthor(${a.id})">✏️</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteAuthor(${a.id}, '${a.firstName} ${a.lastName}')">🗑️</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+  } catch (e) {}
+}
+
+function openAuthorModal(author = null) {
+  document.getElementById('authorModalTitle').textContent = author ? 'Edytuj autora' : 'Dodaj autora';
+  document.getElementById('authorId').value = author ? author.id : '';
+  document.getElementById('authorFirst').value = author ? author.firstName : '';
+  document.getElementById('authorLast').value = author ? author.lastName : '';
+  document.getElementById('authorBio').value = author ? (author.bio || '') : '';
+  document.getElementById('authorBirth').value = author ? (author.birthDate || '') : '';
+  openModal('authorModal');
+}
+
+async function editAuthor(id) {
+  try {
+    const author = await api(`/authors/${id}`);
+    openAuthorModal(author);
+  } catch (e) {}
+}
+
+async function saveAuthor() {
+  const id = document.getElementById('authorId').value;
+  const body = {
+    firstName: document.getElementById('authorFirst').value,
+    lastName: document.getElementById('authorLast').value,
+    bio: document.getElementById('authorBio').value || null,
+    birthDate: document.getElementById('authorBirth').value || null
+  };
+
+  try {
+    if (id) {
+      await api(`/authors/${id}`, { method: 'PUT', body: JSON.stringify(body) });
+      showToast('Autor zaktualizowany');
+    } else {
+      await api('/authors', { method: 'POST', body: JSON.stringify(body) });
+      showToast('Autor dodany');
+    }
+    closeModal('authorModal');
+    loadAuthors();
+  } catch (e) {}
+}
+
+async function deleteAuthor(id, name) {
+  if (!confirm(`Czy na pewno chcesz usunąć autora "${name}"?`)) return;
+  try {
+    await api(`/authors/${id}`, { method: 'DELETE' });
+    showToast('Autor usunięty');
+    loadAuthors();
+  } catch (e) {}
+}
+
+// ══════════════════════════════════════
+// CATEGORIES
+// ══════════════════════════════════════
+async function loadCategories() {
+  try {
+    const data = await api('/categories');
+    allCategories = data;
+    document.getElementById('categoriesCount').textContent = data.length;
+
+    // Update filter dropdown
+    const filter = document.getElementById('categoryFilter');
+    const currentVal = filter.value;
+    filter.innerHTML = '<option value="">Wszystkie kategorie</option>' +
+      data.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+    filter.value = currentVal;
+
+    const tbody = document.getElementById('categoriesTable');
+    if (!data.length) {
+      tbody.innerHTML = '<tr><td colspan="2"><div class="empty-state">Brak kategorii</div></td></tr>';
+    } else {
+      tbody.innerHTML = data.map(c => `
+        <tr>
+          <td><span class="cat-tag" style="font-size:.82rem">${c.name}</span></td>
+          <td class="actions">
+            <button class="btn btn-sm btn-danger" onclick="deleteCategory(${c.id}, '${c.name}')">🗑️</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+  } catch (e) {}
+}
+
+function openCategoryModal() {
+  document.getElementById('categoryName').value = '';
+  openModal('categoryModal');
+}
+
+async function saveCategory() {
+  const body = { name: document.getElementById('categoryName').value };
+  try {
+    await api('/categories', { method: 'POST', body: JSON.stringify(body) });
+    showToast('Kategoria dodana');
+    closeModal('categoryModal');
+    loadCategories();
+  } catch (e) {}
+}
+
+async function deleteCategory(id, name) {
+  if (!confirm(`Czy na pewno chcesz usunąć kategorię "${name}"?`)) return;
+  try {
+    await api(`/categories/${id}`, { method: 'DELETE' });
+    showToast('Kategoria usunięta');
+    loadCategories();
+  } catch (e) {}
+}
+
+// ══════════════════════════════════════
+// REVIEWS
+// ══════════════════════════════════════
+function openReviewModal(bookId) {
+  document.getElementById('reviewBookId').value = bookId;
+  document.getElementById('reviewName').value = '';
+  document.getElementById('reviewComment').value = '';
+  document.getElementById('reviewRating').value = 0;
+  pickRating(0);
+  openModal('reviewModal');
+}
+
+function pickRating(n) {
+  document.getElementById('reviewRating').value = n;
+  const stars = document.getElementById('starPicker').children;
+  for (let i = 0; i < 5; i++) {
+    stars[i].textContent = i < n ? '★' : '☆';
+    stars[i].style.color = i < n ? 'var(--accent)' : 'var(--text-dim)';
+  }
+}
+
+async function saveReview() {
+  const bookId = document.getElementById('reviewBookId').value;
+  const body = {
+    reviewerName: document.getElementById('reviewName').value,
+    rating: parseInt(document.getElementById('reviewRating').value),
+    comment: document.getElementById('reviewComment').value || null
+  };
+
+  try {
+    await api(`/books/${bookId}/reviews`, { method: 'POST', body: JSON.stringify(body) });
+    showToast('Recenzja dodana');
+    closeModal('reviewModal');
+    showBookDetail(parseInt(bookId));
+    loadBooks();
+  } catch (e) {}
+}
+
+// ══════════════════════════════════════
+// MODAL HELPERS
+// ══════════════════════════════════════
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// Close on backdrop click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) overlay.classList.remove('open');
+  });
+});
+
+// Close on Escape
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.modal-overlay.open').forEach(m => m.classList.remove('open'));
+  }
+});
+
+// ══════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════
+function showToast(msg, type = 'success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast show ${type}`;
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ══════════════════════════════════════
+// INIT
+// ══════════════════════════════════════
+async function init() {
+  try {
+    await loadCategories();
+    await loadAuthors();
+    await loadBooks();
+  } catch (e) {
+    console.error('Init failed:', e);
+  }
+}
+
+init();
+</script>
+</body>
+</html>
