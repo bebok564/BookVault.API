@@ -22,7 +22,7 @@ Includes a built-in single-page frontend (made by AI) for full CRUD operations.
 
 | Layer | Technology |
 |-------|-----------|
-| Framework | ASP.NET Core 8 |
+| Framework | ASP.NET Core 9 |
 | ORM | Entity Framework Core 9 |
 | Database | SQL Server (LocalDB / Express) |
 | Validation | FluentValidation |
