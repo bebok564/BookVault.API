@@ -1,22 +1,21 @@
 # BookVault API
 
-REST API for managing a digital book library — built with **ASP.NET Core 9**, **Entity Framework Core** and **SQL Server**.
+REST API for managing a digital book library - built with **ASP.NET Core 9**, **Entity Framework Core** and **SQL Server**.
 
 Includes a built-in single-page frontend (made by AI) for full CRUD operations.
 
----
+
 
 ## Features
 
-- **Books** — full CRUD with pagination, search, filtering by category, sorting (by title, rating, date, author)
-- **Authors** — CRUD with delete protection (cannot remove author who has books)
-- **Categories** — create and browse, many-to-many relationship with books
-- **Reviews** — add reviews with 1–5 star rating, automatic average recalculation
-- **Validation** — FluentValidation for all input DTOs (ISBN format, rating range, required fields)
-- **Error handling** — global ExceptionMiddleware returning consistent JSON error responses
-- **Frontend** — single-page HTML/CSS/JS app served from `wwwroot/`
+- **Books** - full CRUD with pagination, search, filtering by category, sorting (by title, rating, date, author)
+- **Authors** - CRUD with delete protection (cannot remove author who has books)
+- **Categories** - create and browse, many-to-many relationship with books
+- **Reviews** - add reviews with 1–5 star rating, automatic average recalculation
+- **Validation** - FluentValidation for all input DTOs (ISBN format, rating range, required fields)
+- **Error handling** - global ExceptionMiddleware returning consistent JSON error responses
+- **Frontend** - single-page HTML/CSS/JS app served from `wwwroot/`
 
----
 
 ## Tech Stack
 
@@ -109,7 +108,6 @@ Includes a built-in single-page frontend (made by AI) for full CRUD operations.
 | `categoryId` | int | — | Filter by category |
 | `sortBy` | string | "title" | Sort by: `title`, `rating`, `date`, `author` |
 
----
 
 ## Project Structure
 
@@ -145,7 +143,6 @@ Author (1) ──── (N) Book (N) ──── (N) Category
 - **Book ↔ Category**: many-to-many (a book can have multiple categories)
 - **Book → Review**: one-to-many (cascade delete)
 
----
 
 ## Example Requests
 
@@ -190,7 +187,6 @@ Content-Type: application/json
 }
 ```
 
----
 
 ## Validation Rules
 
