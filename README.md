@@ -64,7 +64,6 @@ Includes a built-in single-page frontend (made by AI) for full CRUD operations.
 
 5. **Open in browser**: `http://localhost:5161`
 
----
 
 ## API Endpoints
 
