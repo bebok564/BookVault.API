@@ -46,6 +46,7 @@ namespace BookVault.API.Controllers
                     a.FirstName,
                     a.LastName,
                     a.Bio,
+                    a.BirthDate,
                     Books = a.Books.Select(b => new
                     {
                         b.Id,

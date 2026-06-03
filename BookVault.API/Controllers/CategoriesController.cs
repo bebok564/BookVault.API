@@ -57,8 +57,7 @@ namespace BookVault.API.Controllers
             );
         }
         //GET /api/categories/{id}/books — książki w danej kategorii
-        [HttpGet]
-        [Route("categories/{id}/books")]
+        [HttpGet("{id}/books")]
         public async Task<ActionResult<IEnumerable<BookDto>>> GetBooksByCategory(int id)
         {
             
@@ -85,9 +84,32 @@ namespace BookVault.API.Controllers
                     .ToListAsync();
 
                 return Ok(books);
-           
+
 
 
         }
+
+        //DELETE /api/categories/{id} — usuń (tylko jeśli żadna książka jej nie używa)
+        [HttpDelete("{id}")]
+        public async Task<ActionResult> DeleteCategory(int id)
+        {
+            var category = await _context.Categories
+                .Include(c => c.Books)
+                .FirstOrDefaultAsync(c => c.Id == id);
+
+            if (category == null)
+            {
+                return NotFound("Category not found");
+            }
+
+            if (category.Books.Any())
+            {
+                return Conflict("Cannot delete category that is used by books");
+            }
+
+            _context.Categories.Remove(category);
+            await _context.SaveChangesAsync();
+            return NoContent();
+        }
     }
-}             
+}

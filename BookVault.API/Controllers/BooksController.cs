@@ -301,6 +301,8 @@ namespace BookVault.API.Controllers
             book.Reviews.Add(review);
             book.AverageRating = (decimal)book.Reviews.Average(r => r.Rating);
 
+            await _context.SaveChangesAsync();
+
             return CreatedAtAction(
             nameof(GetBookReviews),
             new { id = book.Id },
