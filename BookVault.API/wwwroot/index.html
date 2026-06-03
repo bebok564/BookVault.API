@@ -5,141 +5,146 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>BookVault — Library Manager</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          bg: '#08090c', bg2: '#0e1015', bg3: '#14161d',
+          surface: '#1a1d27', surface2: '#21242f',
+          line: '#282c3a', line2: '#3a3f52',
+          text: '#c4c8d4', dim: '#6a6f82', bright: '#eaedf5',
+          accent: '#c9a87c', accent2: '#dfc49e',
+          red: '#e25c5c', green: '#5cb878', blue: '#5c8ee2'
+        },
+        fontFamily: {
+          serif: ['"Cormorant Garamond"', 'serif'],
+          sans: ['Manrope', 'sans-serif'],
+          mono: ['"IBM Plex Mono"', 'monospace']
+        }
+      }
+    }
+  }
+</script>
+
+<!-- Animacje / drobiazgi, których nie da się wyrazić utility-klasami -->
 <style>
-:root {
-  --bg: #08090c;
-  --bg2: #0e1015;
-  --bg3: #14161d;
-  --surface: #1a1d27;
-  --surface2: #21242f;
-  --border: #282c3a;
-  --border-h: #3a3f52;
-  --text: #c4c8d4;
-  --text-dim: #6a6f82;
-  --text-bright: #eaedf5;
-  --accent: #c9a87c;
-  --accent2: #dfc49e;
-  --accent-glow: rgba(201,168,124,0.08);
-  --red: #e25c5c;
-  --red-glow: rgba(226,92,92,0.08);
-  --green: #5cb878;
-  --green-glow: rgba(92,184,120,0.08);
-  --blue: #5c8ee2;
-  --blue-glow: rgba(92,142,226,0.08);
-}
-*{margin:0;padding:0;box-sizing:border-box}
-body{background:var(--bg);color:var(--text);font-family:'Manrope',sans-serif;min-height:100vh;line-height:1.6}
-::selection{background:var(--accent);color:var(--bg)}
+  @keyframes modalIn { from { opacity: 0; transform: translateY(10px) } to { opacity: 1; transform: translateY(0) } }
+  @keyframes toastIn { from { opacity: 0; transform: translateY(10px) } to { opacity: 1; transform: translateY(0) } }
+  @keyframes spin { to { transform: rotate(360deg) } }
+  ::selection { background: #c9a87c; color: #08090c; }
+</style>
 
-/* ── Layout ── */
-.app{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
-@media(max-width:900px){.app{grid-template-columns:1fr}.sidebar{display:none}}
+<!-- System komponentów zbudowany na Tailwindzie (@apply) -->
+<style type="text/tailwindcss">
+  @layer base {
+    body { @apply bg-bg text-text font-sans min-h-screen leading-relaxed; }
+    table { @apply w-full border-collapse; }
+    th { @apply text-left px-4 py-3 text-[.7rem] uppercase text-dim border-b border-line bg-bg3 font-semibold; letter-spacing: 1.5px; }
+    td { @apply px-4 py-3 text-[.88rem] align-middle; border-bottom: 1px solid rgba(40,44,58,.5); }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255,255,255,.015); }
+  }
 
-/* ── Sidebar ── */
-.sidebar{background:var(--bg2);border-right:1px solid var(--border);padding:2rem 0;position:sticky;top:0;height:100vh;overflow-y:auto}
-.logo{padding:0 1.5rem;margin-bottom:2.5rem}
-.logo h1{font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:700;color:var(--text-bright);letter-spacing:-0.5px}
-.logo h1 span{color:var(--accent)}
-.logo p{font-size:.7rem;color:var(--text-dim);letter-spacing:2px;text-transform:uppercase;margin-top:.15rem}
-.nav-section{margin-bottom:1.5rem}
-.nav-label{font-size:.65rem;letter-spacing:2.5px;text-transform:uppercase;color:var(--text-dim);padding:0 1.5rem;margin-bottom:.5rem}
-.nav-item{display:flex;align-items:center;gap:.65rem;padding:.6rem 1.5rem;cursor:pointer;transition:all .2s;font-size:.88rem;color:var(--text-dim);border-left:2px solid transparent}
-.nav-item:hover{color:var(--text);background:rgba(255,255,255,.02)}
-.nav-item.active{color:var(--accent);border-left-color:var(--accent);background:var(--accent-glow)}
-.nav-icon{font-size:1rem;width:20px;text-align:center}
-.nav-count{margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:.7rem;background:var(--surface);padding:.1rem .45rem;border-radius:3px;color:var(--text-dim)}
+  @layer components {
+    /* Layout */
+    .app { @apply grid min-h-screen grid-cols-[240px_1fr] max-[900px]:grid-cols-[1fr]; }
+    .sidebar { @apply bg-bg2 border-r border-line py-8 sticky top-0 h-screen overflow-y-auto max-[900px]:hidden; }
+    .logo { @apply px-6 mb-10; }
+    .logo h1 { @apply font-serif text-[1.6rem] font-bold text-bright; letter-spacing: -.5px; }
+    .logo h1 span { @apply text-accent; }
+    .logo p { @apply text-[.7rem] text-dim uppercase mt-[.15rem]; letter-spacing: 2px; }
+    .nav-section { @apply mb-6; }
+    .nav-label { @apply text-[.65rem] uppercase text-dim px-6 mb-2; letter-spacing: 2.5px; }
+    .nav-item { @apply flex items-center gap-[.65rem] px-6 py-[.6rem] cursor-pointer transition-all text-[.88rem] text-dim border-l-2 border-transparent; }
+    .nav-item:hover { @apply text-text; background: rgba(255,255,255,.02); }
+    .nav-item.active { @apply text-accent border-l-accent; background: rgba(201,168,124,.08); }
+    .nav-icon { @apply text-base w-5 text-center; }
+    .nav-count { @apply ml-auto font-mono text-[.7rem] bg-surface px-[.45rem] py-[.1rem] rounded-[3px] text-dim; }
 
-/* ── Main ── */
-.main{padding:2rem 2.5rem;max-width:1100px}
-@media(max-width:900px){.main{padding:1.25rem 1rem}}
+    /* Main + header */
+    .main { @apply px-10 py-8 max-w-[1100px] max-[900px]:px-4 max-[900px]:py-5; }
+    .page-header { @apply flex justify-between items-center mb-8 flex-wrap gap-4; }
+    .page-title { @apply font-serif text-[2.2rem] font-bold text-bright; }
+    .page-title span { @apply text-accent; }
 
-/* ── Header ── */
-.page-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem;flex-wrap:wrap;gap:1rem}
-.page-title{font-family:'Cormorant Garamond',serif;font-size:2.2rem;font-weight:700;color:var(--text-bright)}
-.page-title span{color:var(--accent)}
+    /* Buttons */
+    .btn { @apply font-sans px-[1.2rem] py-[.55rem] rounded-md border border-line bg-surface text-text cursor-pointer text-[.82rem] font-semibold transition-all inline-flex items-center gap-[.4rem]; }
+    .btn:hover { @apply border-line2 bg-surface2; }
+    .btn:disabled { @apply opacity-40 cursor-not-allowed; }
+    .btn-accent { @apply bg-accent text-bg border-accent; }
+    .btn-accent:hover { @apply bg-accent2 border-accent2; }
+    .btn-danger { @apply text-red; border-color: rgba(226,92,92,.25); }
+    .btn-danger:hover { @apply border-red; background: rgba(226,92,92,.08); }
+    .btn-sm { @apply px-3 py-[.35rem] text-[.75rem]; }
 
-/* ── Buttons ── */
-.btn{font-family:'Manrope',sans-serif;padding:.55rem 1.2rem;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;font-size:.82rem;font-weight:600;transition:all .2s;display:inline-flex;align-items:center;gap:.4rem}
-.btn:hover{border-color:var(--border-h);background:var(--surface2)}
-.btn-accent{background:var(--accent);color:var(--bg);border-color:var(--accent)}
-.btn-accent:hover{background:var(--accent2)}
-.btn-danger{color:var(--red);border-color:rgba(226,92,92,.25)}
-.btn-danger:hover{background:var(--red-glow);border-color:var(--red)}
-.btn-sm{padding:.35rem .75rem;font-size:.75rem}
+    /* Search */
+    .search-bar { @apply flex gap-3 mb-6 flex-wrap; }
+    .search-input { @apply flex-1 min-w-[200px] px-4 py-[.6rem] bg-surface border border-line rounded-md text-text font-sans text-[.85rem] outline-none transition-colors; }
+    .search-input:focus { @apply border-accent; }
+    .search-input::placeholder { @apply text-dim; }
+    select.search-input { @apply cursor-pointer max-w-[200px]; }
 
-/* ── Search ── */
-.search-bar{display:flex;gap:.75rem;margin-bottom:1.5rem;flex-wrap:wrap}
-.search-input{flex:1;min-width:200px;padding:.6rem 1rem;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'Manrope',sans-serif;font-size:.85rem;outline:none;transition:border-color .2s}
-.search-input:focus{border-color:var(--accent)}
-.search-input::placeholder{color:var(--text-dim)}
-select.search-input{cursor:pointer;max-width:200px}
+    /* Table */
+    .table-wrap { @apply bg-surface border border-line rounded-[10px] overflow-hidden mb-6; }
+    .rating { @apply font-mono text-accent font-semibold; }
+    .cat-tag { @apply inline-block text-[.7rem] px-2 py-[.15rem] rounded-[3px] text-accent mr-1 mb-[.2rem]; background: rgba(201,168,124,.08); border: 1px solid rgba(201,168,124,.2); }
+    .actions { @apply flex gap-[.35rem]; }
+    .empty-state { @apply text-center p-12 text-dim text-[.9rem]; }
 
-/* ── Table ── */
-.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:1.5rem}
-table{width:100%;border-collapse:collapse}
-th{text-align:left;padding:.75rem 1rem;font-size:.7rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-dim);border-bottom:1px solid var(--border);background:var(--bg3);font-weight:600}
-td{padding:.75rem 1rem;border-bottom:1px solid rgba(40,44,58,.5);font-size:.88rem;vertical-align:middle}
-tr:last-child td{border-bottom:none}
-tr:hover td{background:rgba(255,255,255,.015)}
-.rating{font-family:'IBM Plex Mono',monospace;color:var(--accent);font-weight:600}
-.cat-tag{display:inline-block;font-size:.7rem;padding:.15rem .5rem;border-radius:3px;background:var(--accent-glow);color:var(--accent);border:1px solid rgba(201,168,124,.2);margin-right:.25rem;margin-bottom:.2rem}
-.actions{display:flex;gap:.35rem}
-.empty-state{text-align:center;padding:3rem;color:var(--text-dim);font-size:.9rem}
+    /* Pagination */
+    .pagination { @apply flex justify-between items-center mb-8 text-[.82rem] text-dim; }
+    .page-info { @apply font-mono text-[.78rem]; }
+    .page-btns { @apply flex gap-[.35rem]; }
 
-/* ── Pagination ── */
-.pagination{display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem;font-size:.82rem;color:var(--text-dim)}
-.page-info{font-family:'IBM Plex Mono',monospace;font-size:.78rem}
-.page-btns{display:flex;gap:.35rem}
+    /* Modal */
+    .modal-overlay { @apply fixed inset-0 z-[100] hidden items-center justify-center p-4; background: rgba(0,0,0,.7); backdrop-filter: blur(4px); }
+    .modal-overlay.open { @apply flex; }
+    .modal { @apply bg-bg2 border border-line rounded-xl w-full max-w-[520px] max-h-[90vh] overflow-y-auto; animation: modalIn .25s ease; }
+    .modal-header { @apply flex justify-between items-center px-6 py-5 border-b border-line; }
+    .modal-header h2 { @apply font-serif text-[1.4rem] text-bright; }
+    .modal-close { @apply bg-transparent border-none text-dim cursor-pointer text-[1.2rem] p-1 transition-colors; }
+    .modal-close:hover { @apply text-text; }
+    .modal-body { @apply p-6; }
+    .modal-footer { @apply px-6 py-4 border-t border-line flex justify-end gap-2; }
 
-/* ── Modal ── */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;display:none;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(4px)}
-.modal-overlay.open{display:flex}
-.modal{background:var(--bg2);border:1px solid var(--border);border-radius:12px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;animation:modalIn .25s ease}
-@keyframes modalIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-.modal-header{display:flex;justify-content:space-between;align-items:center;padding:1.25rem 1.5rem;border-bottom:1px solid var(--border)}
-.modal-header h2{font-family:'Cormorant Garamond',serif;font-size:1.4rem;color:var(--text-bright)}
-.modal-close{background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:1.2rem;padding:.25rem;transition:color .2s}
-.modal-close:hover{color:var(--text)}
-.modal-body{padding:1.5rem}
-.modal-footer{padding:1rem 1.5rem;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:.5rem}
+    /* Form */
+    .form-group { @apply mb-4; }
+    .form-label { @apply block text-[.78rem] font-semibold text-dim mb-[.35rem] uppercase; letter-spacing: .5px; }
+    .form-input { @apply w-full px-[.85rem] py-[.55rem] bg-surface border border-line rounded-md text-text font-sans text-[.85rem] outline-none transition-colors; }
+    .form-input:focus { @apply border-accent; }
+    textarea.form-input { @apply resize-y min-h-[80px]; }
+    .form-row { @apply grid grid-cols-2 gap-3; }
 
-/* ── Form ── */
-.form-group{margin-bottom:1rem}
-.form-label{display:block;font-size:.78rem;font-weight:600;color:var(--text-dim);margin-bottom:.35rem;letter-spacing:.5px;text-transform:uppercase}
-.form-input{width:100%;padding:.55rem .85rem;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'Manrope',sans-serif;font-size:.85rem;outline:none;transition:border-color .2s}
-.form-input:focus{border-color:var(--accent)}
-textarea.form-input{resize:vertical;min-height:80px}
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+    /* Detail panel */
+    .detail-panel { @apply bg-surface border border-line rounded-[10px] p-7 mb-6 hidden; }
+    .detail-panel.open { @apply block; animation: modalIn .3s ease; }
+    .detail-title { @apply font-serif text-[1.8rem] text-bright mb-1; }
+    .detail-author { @apply text-accent text-[.95rem] mb-4; }
+    .detail-meta { @apply flex gap-6 flex-wrap mb-4 text-[.85rem] text-dim; }
+    .detail-meta span { @apply flex items-center gap-[.3rem]; }
+    .detail-desc { @apply text-[.9rem] leading-[1.8] mb-6 text-text; }
+    .detail-section-title { @apply text-[.72rem] uppercase text-dim mb-3 pb-[.35rem] border-b border-line; letter-spacing: 2px; }
 
-/* ── Detail panel ── */
-.detail-panel{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1.75rem;margin-bottom:1.5rem;display:none}
-.detail-panel.open{display:block;animation:modalIn .3s ease}
-.detail-title{font-family:'Cormorant Garamond',serif;font-size:1.8rem;color:var(--text-bright);margin-bottom:.25rem}
-.detail-author{color:var(--accent);font-size:.95rem;margin-bottom:1rem}
-.detail-meta{display:flex;gap:1.5rem;flex-wrap:wrap;margin-bottom:1rem;font-size:.85rem;color:var(--text-dim)}
-.detail-meta span{display:flex;align-items:center;gap:.3rem}
-.detail-desc{font-size:.9rem;line-height:1.8;margin-bottom:1.5rem;color:var(--text)}
-.detail-section-title{font-size:.72rem;letter-spacing:2px;text-transform:uppercase;color:var(--text-dim);margin-bottom:.75rem;padding-bottom:.35rem;border-bottom:1px solid var(--border)}
+    /* Reviews */
+    .review-card { @apply bg-bg3 border border-line rounded-lg px-5 py-4 mb-[.6rem]; }
+    .review-top { @apply flex justify-between items-center mb-[.35rem]; }
+    .review-name { @apply font-semibold text-bright text-[.88rem]; }
+    .review-date { @apply text-[.75rem] text-dim font-mono; }
+    .review-stars { @apply text-accent text-[.9rem] mb-[.35rem]; }
+    .review-comment { @apply text-[.85rem] text-text; }
 
-/* ── Reviews ── */
-.review-card{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:1rem 1.25rem;margin-bottom:.6rem}
-.review-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:.35rem}
-.review-name{font-weight:600;color:var(--text-bright);font-size:.88rem}
-.review-date{font-size:.75rem;color:var(--text-dim);font-family:'IBM Plex Mono',monospace}
-.review-stars{color:var(--accent);font-size:.9rem;margin-bottom:.35rem}
-.review-comment{font-size:.85rem;color:var(--text)}
+    /* Toast */
+    .toast { @apply fixed bottom-8 right-8 px-5 py-3 rounded-lg text-[.85rem] font-medium z-[200] hidden; animation: toastIn .3s ease; }
+    .toast.show { @apply block; }
+    .toast.success { @apply bg-green text-white; }
+    .toast.error { @apply bg-red text-white; }
 
-/* ── Toast ── */
-.toast{position:fixed;bottom:2rem;right:2rem;padding:.75rem 1.25rem;border-radius:8px;font-size:.85rem;font-weight:500;z-index:200;animation:toastIn .3s ease;display:none}
-.toast.show{display:block}
-.toast.success{background:var(--green);color:#fff}
-.toast.error{background:var(--red);color:#fff}
-@keyframes toastIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-
-/* ── Loading ── */
-.loading{text-align:center;padding:2rem;color:var(--text-dim)}
-.spinner{display:inline-block;width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite;margin-right:.5rem;vertical-align:middle}
-@keyframes spin{to{transform:rotate(360deg)}}
+    /* Loading */
+    .loading { @apply text-center p-8 text-dim; }
+    .spinner { @apply inline-block w-5 h-5 rounded-full mr-2 align-middle; border: 2px solid #282c3a; border-top-color: #c9a87c; animation: spin .6s linear infinite; }
+  }
 </style>
 </head>
 <body>
@@ -153,15 +158,31 @@ textarea.form-input{resize:vertical;min-height:80px}
     </div>
     <div class="nav-section">
       <div class="nav-label">Zarządzanie</div>
-      <div class="nav-item active" onclick="navigate('books')">
-        <span class="nav-icon">📚</span>Książki<span class="nav-count" id="booksCount">0</span>
-      </div>
-      <div class="nav-item" onclick="navigate('authors')">
-        <span class="nav-icon">✍️</span>Autorzy<span class="nav-count" id="authorsCount">0</span>
-      </div>
-      <div class="nav-item" onclick="navigate('categories')">
-        <span class="nav-icon">🏷️</span>Kategorie<span class="nav-count" id="categoriesCount">0</span>
-      </div>
+      <a class="nav-item" data-nav="books" href="#/books">
+        <span class="nav-icon">
+          <!-- heroicons: book-open (outline) -->
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
+          </svg>
+        </span>Książki<span class="nav-count" id="booksCount">0</span>
+      </a>
+      <a class="nav-item" data-nav="authors" href="#/authors">
+        <span class="nav-icon">
+          <!-- heroicons: users (outline) -->
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
+          </svg>
+        </span>Autorzy<span class="nav-count" id="authorsCount">0</span>
+      </a>
+      <a class="nav-item" data-nav="categories" href="#/categories">
+        <span class="nav-icon">
+          <!-- heroicons: tag (outline) -->
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6Z" />
+          </svg>
+        </span>Kategorie<span class="nav-count" id="categoriesCount">0</span>
+      </a>
     </div>
   </aside>
 
@@ -185,9 +206,6 @@ textarea.form-input{resize:vertical;min-height:80px}
           <option value="author">Sortuj: Autor</option>
         </select>
       </div>
-
-      <!-- Book detail panel -->
-      <div class="detail-panel" id="bookDetail"></div>
 
       <div class="table-wrap">
         <table>
@@ -233,13 +251,23 @@ textarea.form-input{resize:vertical;min-height:80px}
         <h1 class="page-title">Kategorie</h1>
         <button class="btn btn-accent" onclick="openCategoryModal()">+ Dodaj kategorię</button>
       </div>
+
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Nazwa</th><th>Akcje</th></tr></thead>
+          <thead><tr><th>Nazwa</th><th>Książki</th><th>Akcje</th></tr></thead>
           <tbody id="categoriesTable"></tbody>
         </table>
       </div>
     </div>
+
+    <!-- AUTHOR DETAIL PAGE -->
+    <div id="page-author" style="display:none"><div id="authorDetail"></div></div>
+
+    <!-- CATEGORY DETAIL PAGE -->
+    <div id="page-category" style="display:none"><div id="categoryDetailView"></div></div>
+
+    <!-- BOOK DETAIL PAGE -->
+    <div id="page-book" style="display:none"><div id="bookDetailView"></div></div>
   </main>
 </div>
 
@@ -394,17 +422,47 @@ let allCategories = [];
 let allAuthors = [];
 
 // ══════════════════════════════════════
-// NAVIGATION
+// ROUTER (nawigacja po URL: #/books, #/authors/1, #/categories/3, #/books/5)
 // ══════════════════════════════════════
-function navigate(page) {
-  document.querySelectorAll('[id^="page-"]').forEach(p => p.style.display = 'none');
-  document.getElementById(`page-${page}`).style.display = 'block';
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  event.currentTarget.classList.add('active');
-  document.getElementById('bookDetail').classList.remove('open');
-  if (page === 'books') loadBooks();
-  if (page === 'authors') loadAuthors();
-  if (page === 'categories') loadCategories();
+function showView(name) {
+  document.querySelectorAll('main > [id^="page-"]').forEach(p => p.style.display = 'none');
+  const el = document.getElementById('page-' + name);
+  if (el) el.style.display = 'block';
+}
+
+function setActiveNav(section) {
+  document.querySelectorAll('.nav-item').forEach(n =>
+    n.classList.toggle('active', n.dataset.nav === section));
+}
+
+// Nawigacja programistyczna; jeśli hash się nie zmienia, wymuś ponowne wyrenderowanie
+function go(hash) { if (location.hash === hash) router(); else location.hash = hash; }
+function refresh() { router(); }
+
+async function router() {
+  const raw = (location.hash || '#/books').replace(/^#\/?/, '');
+  const [section, id] = raw.split('/');
+  window.scrollTo(0, 0);
+
+  if (section === 'authors' && id) { setActiveNav('authors'); showView('author'); await loadAuthorDetail(id); }
+  else if (section === 'authors') { setActiveNav('authors'); showView('authors'); await loadAuthors(); }
+  else if (section === 'categories' && id) { setActiveNav('categories'); showView('category'); await loadCategoryDetail(id); }
+  else if (section === 'categories') { setActiveNav('categories'); showView('categories'); await loadCategories(); }
+  else if (section === 'books' && id) { setActiveNav('books'); showView('book'); await loadBookDetail(id); }
+  else { setActiveNav('books'); showView('books'); await loadBooks(); }
+}
+
+// ── Helpery linków ──
+function esc(s) { return String(s).replace(/'/g, "\\'"); }
+function catTag(name) {
+  const cat = allCategories.find(c => c.name === name);
+  return cat
+    ? `<a class="cat-tag" href="#/categories/${cat.id}">${name}</a>`
+    : `<span class="cat-tag">${name}</span>`;
+}
+function authorLink(name) {
+  const a = allAuthors.find(a => `${a.firstName} ${a.lastName}` === name);
+  return a ? `<a href="#/authors/${a.id}" class="hover:text-accent">${name}</a>` : name;
 }
 
 // ══════════════════════════════════════
@@ -418,8 +476,12 @@ async function api(path, options = {}) {
     });
     if (res.status === 204) return null;
     if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.error || err.title || `Error ${res.status}`);
+      const body = await res.json().catch(() => null);
+      // API zwraca błędy albo jako string (Conflict/BadRequest("...")), albo jako ProblemDetails
+      const msg = typeof body === 'string'
+        ? body
+        : (body?.error || body?.title || body?.detail || `Error ${res.status}`);
+      throw new Error(msg);
     }
     return await res.json();
   } catch (e) {
@@ -453,14 +515,14 @@ async function loadBooks() {
     } else {
       tbody.innerHTML = data.items.map(b => `
         <tr>
-          <td><strong style="color:var(--text-bright);cursor:pointer" onclick="showBookDetail(${b.id})">${b.title}</strong></td>
-          <td>${b.authorName}</td>
-          <td>${b.categories.map(c => `<span class="cat-tag">${c}</span>`).join('')}</td>
+          <td><a href="#/books/${b.id}" class="text-bright font-semibold hover:text-accent">${b.title}</a></td>
+          <td>${authorLink(b.authorName)}</td>
+          <td>${b.categories.map(catTag).join('')}</td>
           <td><span class="rating">${b.averageRating > 0 ? '★ ' + b.averageRating.toFixed(1) : '—'}</span></td>
           <td>${b.pageCount}</td>
           <td class="actions">
             <button class="btn btn-sm" onclick="editBook(${b.id})">✏️</button>
-            <button class="btn btn-sm btn-danger" onclick="deleteBook(${b.id}, '${b.title.replace(/'/g, "\\'")}')">🗑️</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteBook(${b.id}, '${esc(b.title)}')">🗑️</button>
           </td>
         </tr>
       `).join('');
@@ -482,43 +544,45 @@ function changePage(dir) {
   loadBooks();
 }
 
-async function showBookDetail(id) {
+async function loadBookDetail(id) {
   try {
     const book = await api(`/books/${id}`);
-    const panel = document.getElementById('bookDetail');
-    panel.innerHTML = `
-      <div style="display:flex;justify-content:space-between;align-items:flex-start">
-        <div>
-          <div class="detail-title">${book.title}</div>
-          <div class="detail-author">by ${book.author.firstName} ${book.author.lastName}</div>
+    const c = document.getElementById('bookDetailView');
+    c.innerHTML = `
+      <div class="page-header">
+        <a class="btn btn-sm" href="#/books">← Wszystkie książki</a>
+        <div class="actions">
+          <button class="btn btn-sm" onclick="editBook(${book.id})">✏️ Edytuj</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteBook(${book.id}, '${esc(book.title)}')">🗑️ Usuń</button>
         </div>
-        <button class="btn btn-sm" onclick="document.getElementById('bookDetail').classList.remove('open')">✕ Zamknij</button>
       </div>
-      <div class="detail-meta">
-        <span>📄 ${book.pageCount} stron</span>
-        <span>📅 ${book.publishedDate}</span>
-        <span>📖 ${book.isbn}</span>
-        <span class="rating">★ ${book.averageRating > 0 ? book.averageRating.toFixed(1) : 'Brak ocen'}</span>
-      </div>
-      <div class="detail-meta">${book.categories.map(c => `<span class="cat-tag">${c}</span>`).join('')}</div>
-      ${book.description ? `<div class="detail-desc">${book.description}</div>` : ''}
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
-        <div class="detail-section-title" style="margin:0;border:none;padding:0">Recenzje (${book.reviews.length})</div>
-        <button class="btn btn-sm btn-accent" onclick="openReviewModal(${book.id})">+ Dodaj recenzję</button>
-      </div>
-      ${book.reviews.length ? book.reviews.map(r => `
-        <div class="review-card">
-          <div class="review-top">
-            <span class="review-name">${r.reviewerName}</span>
-            <span class="review-date">${new Date(r.createdAt).toLocaleDateString('pl-PL')}</span>
+      <div class="detail-panel open">
+        <div class="detail-title">${book.title}</div>
+        <div class="detail-author">by <a href="#/authors/${book.author.id}" class="hover:text-accent2">${book.author.firstName} ${book.author.lastName}</a></div>
+        <div class="detail-meta">
+          <span>📄 ${book.pageCount} stron</span>
+          <span>📅 ${book.publishedDate}</span>
+          <span>📖 ${book.isbn}</span>
+          <span class="rating">★ ${book.averageRating > 0 ? book.averageRating.toFixed(1) : 'Brak ocen'}</span>
+        </div>
+        <div class="detail-meta">${book.categories.map(catTag).join('')}</div>
+        ${book.description ? `<div class="detail-desc">${book.description}</div>` : ''}
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
+          <div class="detail-section-title" style="margin:0;border:none;padding:0">Recenzje (${book.reviews.length})</div>
+          <button class="btn btn-sm btn-accent" onclick="openReviewModal(${book.id})">+ Dodaj recenzję</button>
+        </div>
+        ${book.reviews.length ? book.reviews.map(r => `
+          <div class="review-card">
+            <div class="review-top">
+              <span class="review-name">${r.reviewerName}</span>
+              <span class="review-date">${new Date(r.createdAt).toLocaleDateString('pl-PL')}</span>
+            </div>
+            <div class="review-stars">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</div>
+            ${r.comment ? `<div class="review-comment">${r.comment}</div>` : ''}
           </div>
-          <div class="review-stars">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</div>
-          ${r.comment ? `<div class="review-comment">${r.comment}</div>` : ''}
-        </div>
-      `).join('') : '<div class="empty-state">Brak recenzji — bądź pierwszy!</div>'}
+        `).join('') : '<div class="empty-state">Brak recenzji — bądź pierwszy!</div>'}
+      </div>
     `;
-    panel.classList.add('open');
-    panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch (e) {}
 }
 
@@ -539,7 +603,7 @@ function openBookModal(book = null) {
   const catDiv = document.getElementById('bookCategoriesCheckboxes');
   const selectedCats = book ? (book.categoryIds || []) : [];
   catDiv.innerHTML = allCategories.map(c => `
-    <label style="display:flex;align-items:center;gap:.3rem;font-size:.82rem;cursor:pointer;padding:.3rem .6rem;background:var(--surface);border:1px solid var(--border);border-radius:4px">
+    <label style="display:flex;align-items:center;gap:.3rem;font-size:.82rem;cursor:pointer;padding:.3rem .6rem;background:#1a1d27;border:1px solid #282c3a;border-radius:4px">
       <input type="checkbox" value="${c.id}" ${selectedCats.includes(c.id) ? 'checked' : ''}> ${c.name}
     </label>
   `).join('');
@@ -591,7 +655,7 @@ async function saveBook() {
       showToast('Książka dodana');
     }
     closeModal('bookModal');
-    loadBooks();
+    refresh();
   } catch (e) {}
 }
 
@@ -600,8 +664,8 @@ async function deleteBook(id, title) {
   try {
     await api(`/books/${id}`, { method: 'DELETE' });
     showToast('Książka usunięta');
-    document.getElementById('bookDetail').classList.remove('open');
-    loadBooks();
+    // jeśli jesteśmy na stronie szczegółów tej książki — wróć na listę
+    if (location.hash.startsWith('#/books/')) go('#/books'); else refresh();
   } catch (e) {}
 }
 
@@ -619,16 +683,57 @@ async function loadAuthors() {
     } else {
       tbody.innerHTML = data.map(a => `
         <tr>
-          <td><strong style="color:var(--text-bright)">${a.firstName}</strong></td>
+          <td><a href="#/authors/${a.id}" class="text-bright font-semibold hover:text-accent">${a.firstName}</a></td>
           <td>${a.lastName}</td>
           <td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${a.bio || '—'}</td>
           <td class="actions">
             <button class="btn btn-sm" onclick="editAuthor(${a.id})">✏️</button>
-            <button class="btn btn-sm btn-danger" onclick="deleteAuthor(${a.id}, '${a.firstName} ${a.lastName}')">🗑️</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteAuthor(${a.id}, '${esc(a.firstName + ' ' + a.lastName)}')">🗑️</button>
           </td>
         </tr>
       `).join('');
     }
+  } catch (e) {}
+}
+
+// Strona pojedynczego autora: jego dane + lista jego książek (GET /api/authors/{id})
+async function loadAuthorDetail(id) {
+  try {
+    const a = await api(`/authors/${id}`);
+    const c = document.getElementById('authorDetail');
+    c.innerHTML = `
+      <div class="page-header">
+        <a class="btn btn-sm" href="#/authors">← Wszyscy autorzy</a>
+        <div class="actions">
+          <button class="btn btn-sm" onclick="editAuthor(${a.id})">✏️ Edytuj</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteAuthor(${a.id}, '${esc(a.firstName + ' ' + a.lastName)}')">🗑️ Usuń</button>
+        </div>
+      </div>
+      <div class="detail-panel open">
+        <div class="detail-title">${a.firstName} ${a.lastName}</div>
+        <div class="detail-meta">
+          ${a.birthDate ? `<span>🎂 ${a.birthDate}</span>` : ''}
+          <span>📚 ${a.books.length} książek</span>
+        </div>
+        ${a.bio ? `<div class="detail-desc">${a.bio}</div>` : ''}
+        <div class="detail-section-title">Książki autora</div>
+        ${a.books.length ? `
+          <div class="table-wrap" style="margin:0">
+            <table>
+              <thead><tr><th>Tytuł</th><th>Data wydania</th></tr></thead>
+              <tbody>
+                ${a.books.map(b => `
+                  <tr>
+                    <td><a href="#/books/${b.id}" class="text-bright font-semibold hover:text-accent">${b.title}</a></td>
+                    <td>${b.publishedDate || '—'}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        ` : '<div class="empty-state">Ten autor nie ma jeszcze książek</div>'}
+      </div>
+    `;
   } catch (e) {}
 }
 
@@ -667,7 +772,7 @@ async function saveAuthor() {
       showToast('Autor dodany');
     }
     closeModal('authorModal');
-    loadAuthors();
+    refresh();
   } catch (e) {}
 }
 
@@ -676,7 +781,8 @@ async function deleteAuthor(id, name) {
   try {
     await api(`/authors/${id}`, { method: 'DELETE' });
     showToast('Autor usunięty');
-    loadAuthors();
+    // jeśli jesteśmy na stronie tego autora — wróć na listę
+    if (location.hash.startsWith('#/authors/')) go('#/authors'); else refresh();
   } catch (e) {}
 }
 
@@ -698,17 +804,53 @@ async function loadCategories() {
 
     const tbody = document.getElementById('categoriesTable');
     if (!data.length) {
-      tbody.innerHTML = '<tr><td colspan="2"><div class="empty-state">Brak kategorii</div></td></tr>';
+      tbody.innerHTML = '<tr><td colspan="3"><div class="empty-state">Brak kategorii</div></td></tr>';
     } else {
       tbody.innerHTML = data.map(c => `
         <tr>
-          <td><span class="cat-tag" style="font-size:.82rem">${c.name}</span></td>
+          <td><a class="cat-tag" style="font-size:.82rem" href="#/categories/${c.id}">${c.name}</a></td>
+          <td><a class="btn btn-sm" href="#/categories/${c.id}">📚 Pokaż książki</a></td>
           <td class="actions">
-            <button class="btn btn-sm btn-danger" onclick="deleteCategory(${c.id}, '${c.name}')">🗑️</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteCategory(${c.id}, '${esc(c.name)}')">🗑️</button>
           </td>
         </tr>
       `).join('');
     }
+  } catch (e) {}
+}
+
+// Strona pojedynczej kategorii: książki w niej (GET /api/categories/{id}/books)
+async function loadCategoryDetail(id) {
+  try {
+    const books = await api(`/categories/${id}/books`);
+    const cat = allCategories.find(c => String(c.id) === String(id));
+    const c = document.getElementById('categoryDetailView');
+    c.innerHTML = `
+      <div class="page-header">
+        <a class="btn btn-sm" href="#/categories">← Wszystkie kategorie</a>
+      </div>
+      <div class="detail-panel open">
+        <div class="detail-title">Kategoria: ${cat ? cat.name : '#' + id}</div>
+        <div class="detail-meta"><span>📚 ${books.length} książek</span></div>
+        ${books.length ? `
+          <div class="table-wrap" style="margin:0">
+            <table>
+              <thead><tr><th>Tytuł</th><th>Autor</th><th>Ocena</th><th>Strony</th></tr></thead>
+              <tbody>
+                ${books.map(b => `
+                  <tr>
+                    <td><a href="#/books/${b.id}" class="text-bright font-semibold hover:text-accent">${b.title}</a></td>
+                    <td>${authorLink(b.authorName)}</td>
+                    <td><span class="rating">${b.averageRating > 0 ? '★ ' + b.averageRating.toFixed(1) : '—'}</span></td>
+                    <td>${b.pageCount}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        ` : '<div class="empty-state">Brak książek w tej kategorii</div>'}
+      </div>
+    `;
   } catch (e) {}
 }
 
@@ -723,7 +865,8 @@ async function saveCategory() {
     await api('/categories', { method: 'POST', body: JSON.stringify(body) });
     showToast('Kategoria dodana');
     closeModal('categoryModal');
-    loadCategories();
+    await loadCategories();
+    refresh();
   } catch (e) {}
 }
 
@@ -732,7 +875,9 @@ async function deleteCategory(id, name) {
   try {
     await api(`/categories/${id}`, { method: 'DELETE' });
     showToast('Kategoria usunięta');
-    loadCategories();
+    await loadCategories();
+    // jeśli jesteśmy na stronie tej kategorii — wróć na listę
+    if (location.hash.startsWith('#/categories/')) go('#/categories'); else refresh();
   } catch (e) {}
 }
 
@@ -753,7 +898,7 @@ function pickRating(n) {
   const stars = document.getElementById('starPicker').children;
   for (let i = 0; i < 5; i++) {
     stars[i].textContent = i < n ? '★' : '☆';
-    stars[i].style.color = i < n ? 'var(--accent)' : 'var(--text-dim)';
+    stars[i].style.color = i < n ? '#c9a87c' : '#6a6f82';
   }
 }
 
@@ -769,8 +914,7 @@ async function saveReview() {
     await api(`/books/${bookId}/reviews`, { method: 'POST', body: JSON.stringify(body) });
     showToast('Recenzja dodana');
     closeModal('reviewModal');
-    showBookDetail(parseInt(bookId));
-    loadBooks();
+    refresh();
   } catch (e) {}
 }
 
@@ -809,12 +953,14 @@ function showToast(msg, type = 'success') {
 // ══════════════════════════════════════
 async function init() {
   try {
+    // Dane współdzielone (potrzebne do linków, filtrów i formularzy) ładujemy raz na starcie
     await loadCategories();
     await loadAuthors();
-    await loadBooks();
   } catch (e) {
     console.error('Init failed:', e);
   }
+  window.addEventListener('hashchange', router);
+  router();  // wyrenderuj widok wg bieżącego adresu (#/...)
 }
 
 init();
