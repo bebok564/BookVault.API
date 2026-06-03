@@ -528,7 +528,7 @@ async function loadBooks() {
       `).join('');
     }
 
-    document.getElementById('pageInfo').textContent = `Strona ${data.page} z ${data.totalPages || 1} (${data.totalCount} książek)`;
+    document.getElementById('pageInfo').textContent = `Strona ${data.page} z ${data.totalPages || 1}`;
     document.getElementById('prevBtn').disabled = !data.hasPrevious;
     document.getElementById('nextBtn').disabled = !data.hasNext;
   } catch (e) {}
